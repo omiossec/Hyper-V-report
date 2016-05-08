@@ -18,7 +18,7 @@
 
         .SYNOPSIS
 
-         Take a  VMMeteringReportForVirtualMachine object and return an array of map
+         Take a VMMeteringReportForVirtualMachine object and return an array of map
 
         .DESCRIPTION
 
@@ -58,4 +58,17 @@ function Enable-metering
         get-vm -computername $HostName | ? ResourceMeteringEnabled -eq $false | Enable-VMResourceMetering
     }
 
+}
+
+
+function process-data
+{
+        
+        param (
+                
+                
+        )      
+        
+        
+        
 }
