@@ -32,6 +32,8 @@ function Convert-VMMeteringData
             [Parameter(Mandatory = $true)]
             $VmMeteringData
         )
+        
+$ArrVmMetering = @()
 if ($VMReports.getType() -eq [System.Array])
 {
     foreach ($VMReport in $VMReports) 
@@ -39,13 +41,14 @@ if ($VMReports.getType() -eq [System.Array])
     
     if ($VMReport.GetType() -eq [Microsoft.HyperV.PowerShell.VMMeteringReportForVirtualMachine])
         {
-            write-host 'OK'
+            
             # We want the network traffic for all vmnetadapter, a vm can have up to 8 netadapter, I use measure-object with -sum to calcul the trafic from all the adapter
             $Outbound = $VMReport.NetworkMeteredTrafficReport | Where-Object { $_.RemoteAddress -eq "0.0.0.0/0" -AND $_.Direction -eq "OutBound" } |  Measure-Object TotalTraffic -Sum 
             $inbound = $VMReport.NetworkMeteredTrafficReport | Where-Object { $_.RemoteAddress -eq "0.0.0.0/0" -AND $_.Direction -eq "InBound" } |  Measure-Object TotalTraffic -Sum 
         
-            write-host "Traffic sortant " $VMReport.AggregatedDiskDataRead   $VMReport.AggregatedDiskDataWritten $VMReport.ComputerName $VMReport.VMId $VMReport.vmname
+             
             $Report=@{"AvgCPU"=$VMReport.AvgCPU.ToString();"AvgRam"=$VMReport.AvgRAM.ToString();"TotalDisk"=$VMReport.TotalDisk.ToString();"AggregatedAverageLatency" = $VMReport.AggregatedAverageLatency.ToString(); "AggregatedAverageNormalizedIOPS" = $VMReport.AggregatedAverageNormalizedIOPS.ToString();  "AggregatedDiskDataRead" = $VMReport.AggregatedDiskDataRead.ToString();  "AggregatedDiskDataWritten" = $VMReport.AggregatedDiskDataWritten.ToString(); "OutboundTraffic" = $Outbound.Sum; "InboundTraffic" = $inbound.Sum  }
+            $ArrVmMetering.add($Report)
         }
         else {
             throw "No VM Metering data"
@@ -53,10 +56,18 @@ if ($VMReports.getType() -eq [System.Array])
     }
 }   
 elseif ($VMReport.GetType() -eq [Microsoft.HyperV.PowerShell.VMMeteringReportForVirtualMachine]) {
-    
+            # We want the network traffic for all vmnetadapter, a vm can have up to 8 netadapter, I use measure-object with -sum to calcul the trafic from all the adapter
+            $Outbound = $VMReport.NetworkMeteredTrafficReport | Where-Object { $_.RemoteAddress -eq "0.0.0.0/0" -AND $_.Direction -eq "OutBound" } |  Measure-Object TotalTraffic -Sum 
+            $inbound = $VMReport.NetworkMeteredTrafficReport | Where-Object { $_.RemoteAddress -eq "0.0.0.0/0" -AND $_.Direction -eq "InBound" } |  Measure-Object TotalTraffic -Sum 
+        
+              
+            $Report=@{"AvgCPU"=$VMReport.AvgCPU.ToString();"AvgRam"=$VMReport.AvgRAM.ToString();"TotalDisk"=$VMReport.TotalDisk.ToString();"AggregatedAverageLatency" = $VMReport.AggregatedAverageLatency.ToString(); "AggregatedAverageNormalizedIOPS" = $VMReport.AggregatedAverageNormalizedIOPS.ToString();  "AggregatedDiskDataRead" = $VMReport.AggregatedDiskDataRead.ToString();  "AggregatedDiskDataWritten" = $VMReport.AggregatedDiskDataWritten.ToString(); "OutboundTraffic" = $Outbound.Sum; "InboundTraffic" = $inbound.Sum  }
+            $ArrVmMetering.add($Report)
 }
 else
-{}
+{
+    throw "No VM Metering data"
+}
 
-    
+    return $ArrVmMetering
 }
